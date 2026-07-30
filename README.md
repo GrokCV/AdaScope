@@ -59,7 +59,7 @@ $ python setup.py develop
 **Note**: make sure you have `cd` to the root directory of `deepinfrared`
 
 ```shell
-$ git clone git@github.com:GrokCV/GrokDet/AdaScope.git
+$ git clone git@github.com:GrokCV/AdaScope.git
 $ cd AdaScope
 ```
 
