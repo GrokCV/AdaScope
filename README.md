@@ -22,6 +22,8 @@ This repository is the official implementation of AdaScope
 
 ![AdaScope](./docs/pipeline.png)
 
+![AdaScope](./docs/ARFR.png)
+
 ### Installation
 
 Step 1: Create a conda environment
