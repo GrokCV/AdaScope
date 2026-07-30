@@ -1,0 +1,9 @@
+==============================
+==============================
+Use size divisor set input shape from (213, 308) to (512, 512)
+==============================
+Compute type: dataloader: load a picture from the dataset
+Input shape: (512, 512)
+Flops: 49.96G
+Params: 31.887M
+==============================
