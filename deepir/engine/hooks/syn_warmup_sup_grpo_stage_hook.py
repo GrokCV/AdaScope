@@ -22,6 +22,7 @@ class SynWarmupSupGRPOStageHook(Hook):
         self.warmup_epochs = int(warmup_epochs)
         self.refiner_supervised_epochs = int(refiner_supervised_epochs)
         self.reference_metric_key = str(reference_metric_key)
+        self._loaded_checkpoint_epoch = None
 
     @staticmethod
     def _unwrap_model(model):
@@ -41,9 +42,15 @@ class SynWarmupSupGRPOStageHook(Hook):
             return 'refiner_supervised'
         return 'grpo'
 
+    def _effective_epoch(self, runner: Runner, mode: str) -> int:
+        if mode == 'test' and self._loaded_checkpoint_epoch is not None:
+            return int(self._loaded_checkpoint_epoch)
+        return int(runner.epoch)
+
     def _apply(self, runner: Runner, mode: str) -> str:
         model = self._unwrap_model(runner.model)
-        stage = self._train_stage(runner.epoch) if mode == 'train' else self._val_stage(runner.epoch)
+        epoch = self._effective_epoch(runner, mode)
+        stage = self._train_stage(epoch) if mode == 'train' else self._val_stage(epoch)
 
         if hasattr(model, 'set_training_stage'):
             model.set_training_stage(stage=stage, mode=mode)
@@ -54,7 +61,7 @@ class SynWarmupSupGRPOStageHook(Hook):
 
         runner.logger.info(
             f'[SynWarmupSupGRPOStageHook] mode={mode} '
-            f'epoch={runner.epoch} stage={stage}')
+            f'epoch={epoch} stage={stage}')
         return stage
 
     def before_train_epoch(self, runner: Runner) -> None:
@@ -62,6 +69,16 @@ class SynWarmupSupGRPOStageHook(Hook):
 
     def before_val_epoch(self, runner: Runner) -> None:
         self._apply(runner, mode='val')
+
+    def before_test_epoch(self, runner: Runner) -> None:
+        self._apply(runner, mode='test')
+
+    def after_load_checkpoint(self, runner: Runner, checkpoint=None) -> None:
+        if checkpoint is None:
+            return
+        meta = checkpoint.get('meta', {})
+        epoch = meta.get('epoch', None)
+        self._loaded_checkpoint_epoch = int(epoch) if epoch is not None else None
 
     def _extract_score(self, metrics):
         if metrics is None:
