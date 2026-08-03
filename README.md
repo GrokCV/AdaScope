@@ -155,9 +155,9 @@ AdaScope is trained in three stages automatically via the
 
 | Stage | Epochs | What is trained |
 |-------|--------|-----------------|
-| warmup | 1–12 | backbone / neck / GEDM cluster head / global head |
-| refiner_supervised | 13–16 | ARFR (center alignment, supervised) |
-| grpo | 17–28 | ARFR (context allocation, reinforcement) |
+| Pretrain | 1–12 | backbone / neck / GEDM cluster head / global head |
+| Center offset SFT | 13–16 | ARFR (center alignment, supervised) |
+| RL postraining4Scope | 17–28 | ARFR (context allocation, Scope Adjustment) |
 
 <a id="single-gpu-training"></a>
 
