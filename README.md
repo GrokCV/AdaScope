@@ -180,6 +180,36 @@ tools/train_det.py configs/detection/cluster/AdaScope.py
 Checkpoints are saved to `work_dirs/adascope_fcos_densesirst/`, with the best one
 tracked by `merged_voc/mAP`.
 
+### RL Policy Variants
+
+The ARFR policy optimizer is pluggable. All variants share the same
+coarse-to-fine pipeline (GEDM + ARFR + local FCOS) through the common base
+detector `AdaScopeRLDetector` — only the detector/refiner classes and the
+policy-stage name differ:
+
+| Config | Policy optimizer | 
+|--------|------------------|
+| `AdaScope.py` | GRPO (default) | 
+| `AdaScope_ppo.py` | PPO | 
+| `AdaScope_sac.py` | SAC | 
+| `AdaScope_trpo.py` | TRPO | 
+
+Train any variant with the same entry point:
+
+```shell
+CUDA_VISIBLE_DEVICES=0 python tools/train_det.py configs/detection/cluster/AdaScope_ppo.py
+CUDA_VISIBLE_DEVICES=0 python tools/train_det.py configs/detection/cluster/AdaScope_sac.py
+CUDA_VISIBLE_DEVICES=0 python tools/train_det.py configs/detection/cluster/AdaScope_trpo.py
+```
+
+Test with the corresponding config and checkpoint:
+
+```shell
+CUDA_VISIBLE_DEVICES=0 python tools/test_det.py \
+  configs/detection/cluster/AdaScope_ppo.py \
+  work_dirs/adascope_ppo_densesirst/best_merged_voc_mAP_epoch_XX.pth
+```
+
 [Back to top](#top)
 
 ---
@@ -256,17 +286,27 @@ AdaScope/
 │       │   ├── schedules/schedule_1x.py          # LR schedule
 │       │   └── default_runtime.py                # runtime defaults
 │       └── cluster/
-│           ├── AdaScope.py                       # main experiment config
+│           ├── AdaScope.py                       # main experiment config (GRPO)
+│           ├── AdaScope_ppo.py                   # PPO variant config
+│           ├── AdaScope_sac.py                   # SAC variant config
+│           ├── AdaScope_trpo.py                  # TRPO variant config
 │           └── adascope_fcos_local.py            # external local FCOS
 ├── deepir/
 │   ├── models/
-│   │   ├── detectors/adascope_detector.py        # FixedFlatSyncGRPODetector
-│   │   ├── refine/adascope_refiner.py            # ARFR (GRPO refiner)
+│   │   ├── detectors/
+│   │   │   ├── adascope_detector.py              # FixedFlatSyncGRPODetector (GRPO)
+│   │   │   ├── adascope_rl_detector.py           # AdaScopeRLDetector (shared base)
+│   │   │   ├── adascope_ppo_detector.py          # AdaScopePPODetector
+│   │   │   ├── adascope_sac_detector.py          # AdaScopeSACDetector
+│   │   │   └── adascope_trpo_detector.py         # AdaScopeTRPODetector
+│   │   ├── refine/
+│   │   │   ├── adascope_refiner.py               # ARFR (GRPO refiner)
+│   │   │   └── adascope_{ppo,sac,trpo}_refiner.py# RL variant refiners
 │   │   └── cluster_heads/adascope_cluster_head.py# GEDM (C5 existence classifier)
 │   ├── datasets/
 │   │   ├── sirst_voc_det.py                      # DenseSIRST dataset
 │   │   └── transforms/adascope_cluster_targets.py# cluster GT generation
-│   ├── engine/hooks/adascope_stage_hook.py       # 3-stage training hook
+│   ├── engine/hooks/adascope_stage_hook.py       # shared 3-stage RL training hook
 │   └── evaluation/metrics/selective_voc_metric.py# per-branch VOC metrics
 ├── tools/
 │   ├── train_det.py / test_det.py                # training & testing entry
