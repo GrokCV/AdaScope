@@ -213,7 +213,7 @@ the VOC 11-point protocol at IoU=0.5; PR / F1 / F2 at a confidence threshold):
 
 | Method | Backbone | FLOPs ↓ | Params ↓ | mAP50 ↑ | Recall50 ↑ | PR ↑ | F1 ↑ | F2 ↑ |
 |--------|----------|---------|----------|---------|------------|------|------|------|
-| \multicolumn{9}{l}{\textit{One-stage}} |
+| **One-stage** |
 | FCOS | ResNet50 | 50.291G | 32.113M | 0.257 | 0.315 | 0.1571 | 0.2023 | 0.2445 |
 | VFNet | ResNet50 | 48.317G | 32.709M | 0.253 | 0.336 | 0.1820 | 0.2251 | 0.2624 |
 | YOLOX | — | 8.578G | 8.968M | 0.210 | 0.341 | 0.1450 | 0.1882 | 0.2291 |
@@ -221,17 +221,17 @@ the VOC 11-point protocol at IoU=0.5; PR / F1 / F2 at a confidence threshold):
 | DyHead | ResNet50 | 27.866G | 38.890M | 0.249 | 0.335 | 0.1650 | 0.2090 | 0.2488 |
 | DDOD | ResNet50 | 46.514G | 32.378M | 0.253 | 0.335 | 0.1620 | 0.2079 | 0.2504 |
 | GFL | ResNet50 | 52.296G | 32.258M | 0.264 | 0.367 | 0.1850 | 0.2331 | 0.2762 |
-| \multicolumn{9}{l}{\textit{Two-stage}} |
+| **Two-stage** |
 | Cascade R-CNN | ResNet50 | 90.978G | 69.152M | 0.136 | 0.188 | 0.1150 | 0.1338 | 0.1484 |
 | SABL | ResNet50 | 0.125T | 42.213M | 0.124 | 0.104 | 0.1050 | 0.0969 | 0.0926 |
 | Dynamic R-CNN | ResNet50 | 63.179G | 41.348M | 0.184 | 0.235 | 0.1420 | 0.1678 | 0.1883 |
-| \multicolumn{9}{l}{\textit{End2End}} |
+| **End2End**|
 | Sparse R-CNN | ResNet50 | 45.274G | 0.106G | 0.183 | 0.572 | 0.0850 | 0.1444 | 0.2488 |
 | DAB-DETR | ResNet50 | 28.939G | 43.702M | 0.005 | 0.054 | 0.0100 | 0.0160 | 0.0250 |
 | DQ-DETR | — | 783.57G | 58.68M | 0.0149 | 0.154 | 0.0200 | 0.0345 | 0.0610 |
 | EFLNet | — | 65.49G | 38.335M | 0.152 | 0.1349 | 0.1400 | 0.1263 | 0.1193 |
 | PConv | — | 65.32G | 37.136M | 0.164 | 0.179 | 0.1500 | 0.1525 | 0.1540 |
-| \multicolumn{9}{l}{\textit{Coarse2Fine}} |
+| **Coarse2Fine**|
 | DMNet | ResNet50 | 144.45G | 63.18M | 0.2239 | 0.1259 | 0.2400 | 0.1412 | 0.1132 |
 | AdaZoom | ResNet50 | 49.96G | 31.887M | 0.052 | 0.348 | 0.0360 | 0.0554 | 0.0819 |
 | YOLC | HRNet | 121.59G | 67.55M | 0.335 | 0.477 | 0.3416 | 0.3527 | 0.3597 |
@@ -288,7 +288,7 @@ If you find this work useful, please consider citing:
 ```bibtex
 @article{adascope,
   title={Beyond the Sparsity Assumption: Arbitrary-Distribution Infrared Small Target Detection},
-  author={GrokCV},
+  author={Jingtang Chen, ZhuLiu, Mingjian Fu,Yimian Dai*},
   journal={},
   year={2026}
 }
