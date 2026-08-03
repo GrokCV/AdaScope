@@ -1,24 +1,23 @@
 <a id="top"></a>
 
-# AdaScope
+# Beyond the Sparsity Assumption: Arbitrary-Distribution Infrared Small Target Detection
 
-This repository is the official implementation of **AdaScope**.
+Official implementation of **AdaScope** — an asynchronous coarse-to-fine framework
+designed for **arbitrary-distribution infrared small target detection (IRSTD)**.
+AdaScope decouples target localization from context allocation via a
+divide-and-conquer strategy, reformulating coarse localization as a **spatial
+existence classification** problem and learning distribution-adaptive observation
+windows through **reinforcement learning**.
 
 ## Table of Contents
 
 - [Overview](#overview)
 - [Installation](#installation)
-  - [Step 1: Clone the Repository](#step-1-clone-the-repository)
-  - [Step 2: Create a Conda Environment](#step-2-create-a-conda-environment)
-  - [Step 3: Install PyTorch](#step-3-install-pytorch)
-  - [Step 4: Install OpenMMLab Codebases](#step-4-install-openmmlab-codebases)
-  - [Step 5: Install deepir](#step-5-install-deepir)
-  - [Step 6: Cluster Generation](#step-6-cluster-generation)
+- [Dataset Preparation](#dataset-preparation)
 - [Training](#training)
-  - [Single-GPU Training](#single-gpu-training)
-  - [Multi-GPU Training](#multi-gpu-training)
 - [Testing](#testing)
-- [Visualization](#visualization)
+- [Results](#results)
+- [Repository Structure](#repository-structure)
 
 ---
 
@@ -28,7 +27,12 @@ This repository is the official implementation of **AdaScope**.
 
 ![AdaScope Pipeline](./docs/pipeline.png)
 
-![AdaScope ARFR](./docs/ARFR.png)
+AdaScope is an asynchronous coarse-to-fine detector for arbitrary-distribution
+infrared small target detection: **GEDM** performs coarse localization by
+classifying spatial existence on a semantic grid (instead of fitting unstable
+cluster boundaries), and **ARFR** uses reinforcement learning (GRPO) to adaptively
+refine the observation window of each candidate, with the downstream detector's
+performance gain as the reward. Global and local predictions are fused by NMS.
 
 [Back to top](#top)
 
@@ -42,15 +46,12 @@ This repository is the official implementation of **AdaScope**.
 
 ### Step 1: Clone the Repository
 
-Clone the repository and enter its root directory:
-
 ```shell
 git clone git@github.com:GrokCV/AdaScope.git
 cd AdaScope
 ```
 
-> Make sure all subsequent commands are executed from the root directory of
-> the AdaScope repository.
+> All commands below must be run from the repository root.
 
 <a id="step-2-create-a-conda-environment"></a>
 
@@ -65,7 +66,7 @@ conda activate deepir
 
 ### Step 3: Install PyTorch
 
-Install PyTorch with CUDA 11.8:
+Install PyTorch with CUDA 11.8 (or a version matching your driver):
 
 ```shell
 conda install pytorch torchvision torchaudio pytorch-cuda=11.8 \
@@ -83,41 +84,63 @@ pip install -U openmim
 mim install mmengine
 mim install "mmcv>=2.0.0"
 mim install "mmdet>=3.0.0"
-
-pip install "mmsegmentation>=1.0.0"
-pip install dadaptation
 ```
 
-<a id="step-5-install-deepir"></a>
+<a id="step-5-install-adascope"></a>
 
-### Step 5: Install deepir
-
-Install the project in development mode:
+### Step 5: Install AdaScope
 
 ```shell
 python setup.py develop
-```
-
-Alternatively, you can use:
-
-```shell
+# or
 pip install -e .
 ```
 
-<a id="step-6-cluster-generation"></a>
+[Back to top](#top)
 
-### Step 6: Cluster Generation
+---
 
-Before training AdaScope, generate the required cluster information according
-to the dataset configuration.The first command is to generate Cluster-only lable ,the second one is to additionally lable the single instance as a 'cluster',meeting the definition of our new task,run the first one before the second one
+<a id="dataset-preparation"></a>
 
-```shell
-/tools/relabel_test_clusters_graph.py
+## Dataset Preparation
 
-/tools/build_cluster2_from_cluster1.py
+AdaScope is developed on the **DenseSIRST** infrared small-target dataset.
+
+### Step 1: Download DenseSIRST
+
+Download the dataset and place it under `data/` so that the layout is:
+
+```
+data/DenseSIRST/SIRSTdevkit/
+├── PNGImages/                    # infrared images (*.png)
+├── Splits/
+│   ├── trainval_v2.txt           # training split
+│   └── test_v2.txt               # testing split
+└── SIRST/
+    ├── BBox/                     # single-instance annotations (*.xml)
+    └── Cluster_relabel_graph_v2/ # cluster annotations (*_with_clusters.xml)
 ```
 
+If your data lives elsewhere, override `DATA_ROOT` in
+`configs/detection/_base_/datasets/adascope_densesirst.py`.
 
+### Step 2: Generate Cluster Annotations
+
+AdaScope trains its cluster head and refiner against **cluster-level** annotations
+(a box that encloses a group of small targets). Generate them from the
+single-instance XMLs with the provided tools — **run the first, then the second**:
+
+```shell
+# (1) Graph-based clustering of the test split → Cluster_relabel_graph_v1
+python tools/relabel_test_clusters_graph.py
+
+# (2) Supplement Cluster_relabel_graph_v1 with singleton clusters so that every
+#     instance is covered → Cluster_relabel_graph_v2
+python tools/build_cluster2_from_cluster1.py
+```
+
+> These two tools reproduce the `Cluster_relabel_graph_v2` directory referenced
+> by the training config. See the header of each script for its arguments.
 
 [Back to top](#top)
 
@@ -127,41 +150,35 @@ to the dataset configuration.The first command is to generate Cluster-only lable
 
 ## Training
 
+AdaScope is trained in three stages automatically via the
+`SynWarmupSupGRPOStageHook`:
+
+| Stage | Epochs | What is trained |
+|-------|--------|-----------------|
+| warmup | 1–12 | backbone / neck / GEDM cluster head / global head |
+| refiner_supervised | 13–16 | ARFR (center alignment, supervised) |
+| grpo | 17–28 | ARFR (context allocation, reinforcement) |
+
 <a id="single-gpu-training"></a>
 
 ### Single-GPU Training
 
-Run the following command:
-
 ```shell
-CUDA_VISIBLE_DEVICES=0 python tools/train_det.py <CONFIG_FILE>
-```
-
-Example:
-
-```shell
-CUDA_VISIBLE_DEVICES=0 \
-python tools/train_det.py configs/detection/cluster/adascope.py
+CUDA_VISIBLE_DEVICES=0 python tools/train_det.py configs/detection/cluster/AdaScope.py
 ```
 
 <a id="multi-gpu-training"></a>
 
 ### Multi-GPU Training
 
-Run the following command:
-
 ```shell
-CUDA_VISIBLE_DEVICES=0,1 \
-torchrun --nproc_per_node=2 tools/train_det.py <CONFIG_FILE>
+CUDA_VISIBLE_DEVICES=0,1,2,3 \
+torchrun --nproc_per_node=4 \
+tools/train_det.py configs/detection/cluster/AdaScope.py
 ```
 
-Example:
-
-```shell
-CUDA_VISIBLE_DEVICES=0,1 \
-torchrun --nproc_per_node=2 \
-tools/train_det.py configs/detection/cluster/adascope.py
-```
+Checkpoints are saved to `work_dirs/adascope_fcos_densesirst/`, with the best one
+tracked by `merged_voc/mAP`.
 
 [Back to top](#top)
 
@@ -171,67 +188,112 @@ tools/train_det.py configs/detection/cluster/adascope.py
 
 ## Testing
 
-Run the following command:
-
 ```shell
-CUDA_VISIBLE_DEVICES=0 \
-python tools/test_det.py <CONFIG_FILE> <CHECKPOINT_FILE>
+CUDA_VISIBLE_DEVICES=0 python tools/test_det.py \
+  configs/detection/cluster/AdaScope.py \
+  /path/to/best_merged_voc_mAP_epoch_XX.pth
 ```
 
-Example:
+By default the evaluator reports the **merged** metric (global + local fusion,
+mAP @ IoU=0.5, 11-point VOC), which is also used for best-checkpoint selection.
+To additionally report per-branch metrics (global / raw_cluster / refined_cluster
+/ local), set `SHOW_ALL_METRICS = True` in
+`configs/detection/cluster/AdaScope.py`.
 
-```shell
-CUDA_VISIBLE_DEVICES=0 \
-python tools/test_det.py \
-configs/detection/cluster/adascope.py \
-work_dirs/adascope/20260719_162542/best_pascal_voc_mAP_epoch_8.pth
+[Back to top](#top)
+
+---
+
+<a id="results"></a>
+
+## Results
+
+Comparison with state-of-the-art methods on **DenseSIRST** (mAP and Recall under
+the VOC 11-point protocol at IoU=0.5; PR / F1 / F2 at a confidence threshold):
+
+| Method | Backbone | FLOPs ↓ | Params ↓ | mAP50 ↑ | Recall50 ↑ | PR ↑ | F1 ↑ | F2 ↑ |
+|--------|----------|---------|----------|---------|------------|------|------|------|
+| \multicolumn{9}{l}{\textit{One-stage}} |
+| FCOS | ResNet50 | 50.291G | 32.113M | 0.257 | 0.315 | 0.1571 | 0.2023 | 0.2445 |
+| VFNet | ResNet50 | 48.317G | 32.709M | 0.253 | 0.336 | 0.1820 | 0.2251 | 0.2624 |
+| YOLOX | — | 8.578G | 8.968M | 0.210 | 0.341 | 0.1450 | 0.1882 | 0.2291 |
+| TOOD | ResNet50 | 50.456G | 32.018M | 0.256 | 0.355 | 0.1750 | 0.2224 | 0.2655 |
+| DyHead | ResNet50 | 27.866G | 38.890M | 0.249 | 0.335 | 0.1650 | 0.2090 | 0.2488 |
+| DDOD | ResNet50 | 46.514G | 32.378M | 0.253 | 0.335 | 0.1620 | 0.2079 | 0.2504 |
+| GFL | ResNet50 | 52.296G | 32.258M | 0.264 | 0.367 | 0.1850 | 0.2331 | 0.2762 |
+| \multicolumn{9}{l}{\textit{Two-stage}} |
+| Cascade R-CNN | ResNet50 | 90.978G | 69.152M | 0.136 | 0.188 | 0.1150 | 0.1338 | 0.1484 |
+| SABL | ResNet50 | 0.125T | 42.213M | 0.124 | 0.104 | 0.1050 | 0.0969 | 0.0926 |
+| Dynamic R-CNN | ResNet50 | 63.179G | 41.348M | 0.184 | 0.235 | 0.1420 | 0.1678 | 0.1883 |
+| \multicolumn{9}{l}{\textit{End2End}} |
+| Sparse R-CNN | ResNet50 | 45.274G | 0.106G | 0.183 | 0.572 | 0.0850 | 0.1444 | 0.2488 |
+| DAB-DETR | ResNet50 | 28.939G | 43.702M | 0.005 | 0.054 | 0.0100 | 0.0160 | 0.0250 |
+| DQ-DETR | — | 783.57G | 58.68M | 0.0149 | 0.154 | 0.0200 | 0.0345 | 0.0610 |
+| EFLNet | — | 65.49G | 38.335M | 0.152 | 0.1349 | 0.1400 | 0.1263 | 0.1193 |
+| PConv | — | 65.32G | 37.136M | 0.164 | 0.179 | 0.1500 | 0.1525 | 0.1540 |
+| \multicolumn{9}{l}{\textit{Coarse2Fine}} |
+| DMNet | ResNet50 | 144.45G | 63.18M | 0.2239 | 0.1259 | 0.2400 | 0.1412 | 0.1132 |
+| AdaZoom | ResNet50 | 49.96G | 31.887M | 0.052 | 0.348 | 0.0360 | 0.0554 | 0.0819 |
+| YOLC | HRNet | 121.59G | 67.55M | 0.335 | 0.477 | 0.3416 | 0.3527 | 0.3597 |
+| BAFE-Net | ResNet50 | 71.639G | 35.626M | 0.283 | 0.335 | **0.4275** | 0.3302 | 0.2905 |
+| YOLD | HRNet | 122.62G | 67.61M | 0.171 | 0.371 | 0.3312 | 0.2172 | 0.1800 |
+| **AdaScope (Ours)** | **ResNet50** | 89.34G | 49.73M | **0.402** | **0.681** | 0.3284 | **0.3683** | **0.3972** |
+
+[Back to top](#top)
+
+---
+
+<a id="repository-structure"></a>
+
+## Repository Structure
+
+```
+AdaScope/
+├── configs/
+│   └── detection/
+│       ├── _base_/
+│       │   ├── datasets/adascope_densesirst.py   # dataset + pipelines
+│       │   ├── schedules/schedule_1x.py          # LR schedule
+│       │   └── default_runtime.py                # runtime defaults
+│       └── cluster/
+│           ├── AdaScope.py                       # main experiment config
+│           └── adascope_fcos_local.py            # external local FCOS
+├── deepir/
+│   ├── models/
+│   │   ├── detectors/adascope_detector.py        # FixedFlatSyncGRPODetector
+│   │   ├── refine/adascope_refiner.py            # ARFR (GRPO refiner)
+│   │   └── cluster_heads/adascope_cluster_head.py# GEDM (C5 existence classifier)
+│   ├── datasets/
+│   │   ├── sirst_voc_det.py                      # DenseSIRST dataset
+│   │   └── transforms/adascope_cluster_targets.py# cluster GT generation
+│   ├── engine/hooks/adascope_stage_hook.py       # 3-stage training hook
+│   └── evaluation/metrics/selective_voc_metric.py# per-branch VOC metrics
+├── tools/
+│   ├── train_det.py / test_det.py                # training & testing entry
+│   ├── relabel_test_clusters_graph.py            # cluster generation (v1)
+│   └── build_cluster2_from_cluster1.py           # cluster generation (v2)
+└── docs/
+    ├── pipeline.png
+    └── ARFR.png
 ```
 
 [Back to top](#top)
 
 ---
 
-<a id="visualization"></a>
+## Citation
 
-## Visualization
+If you find this work useful, please consider citing:
 
-To visualize the test results directly, add the `--show` option:
-
-```shell
-CUDA_VISIBLE_DEVICES=0 \
-python tools/test_det.py \
-configs/detection/cluster/adascope.py \
-work_dirs/adascope/20260719_162542/best_pascal_voc_mAP_epoch_8.pth \
---show
+```bibtex
+@article{adascope,
+  title={Beyond the Sparsity Assumption: Arbitrary-Distribution Infrared Small Target Detection},
+  author={GrokCV},
+  journal={},
+  year={2026}
+}
 ```
 
-You can use `--work-dir` to specify the test log directory:
+## License
 
-```shell
-CUDA_VISIBLE_DEVICES=0 \
-python tools/test_det.py \
-configs/detection/cluster/adascope.py \
-<CHECKPOINT_FILE> \
---work-dir work_dirs/adascope_test
-```
-
-You can also use `--show-dir` to specify the directory where visualization
-results will be saved:
-
-```shell
-CUDA_VISIBLE_DEVICES=0 \
-python tools/test_det.py \
-configs/detection/cluster/adascope.py \
-<CHECKPOINT_FILE> \
---show-dir work_dirs/adascope_visualization
-```
-
-### Test Arguments
-
-| Argument | Description |
-| --- | --- |
-| `--show` | Display visualization results directly. |
-| `--work-dir` | Specify the test log and output directory. |
-| `--show-dir` | Specify the directory used to save visualization results. |
-
-[Back to top](#top)
+This project is released under the Apache 2.0 license.

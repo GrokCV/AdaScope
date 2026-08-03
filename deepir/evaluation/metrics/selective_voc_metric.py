@@ -51,6 +51,7 @@ class SelectiveVOCMetric(VOCMetric):
     def _build_ann(self, data_sample) -> dict:
         if self.gt_source == 'instance':
             gt = copy.deepcopy(data_sample)
+            # data_sample is already a dict (converted by evaluator)
             gt_instances = gt['gt_instances']
             gt_ignore_instances = gt['ignored_instances']
             return dict(

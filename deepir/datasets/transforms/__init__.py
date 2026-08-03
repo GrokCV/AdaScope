@@ -2,7 +2,7 @@ from .debug import PrintPipeline
 from .formatting import PackDualSegInputs
 from .loading import LoadDualSegAnnotations, LoadSegAnnotations
 from .processing import DualSegResize, RandomDualSegFlip
-from .cluster_gt_targets import GenerateC5TargetsFromClusterGT
+from .adascope_cluster_targets import GenerateC5TargetsFromClusterGT
 from .cluster_json_targets import GenerateC5TargetsFromClusterJSON
 from .instance_grid_targets import GenerateC5InstanceGridTargets
 from .instance_grid_cluster_gt_targets import GenerateC5InstanceGridTargetsFromClusterGT
