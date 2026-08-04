@@ -22,7 +22,7 @@ from torchvision.ops import nms as torchvision_nms
 
 
 @MODELS.register_module()
-class FixedFlatSyncGRPODetector(SingleStageDetector):
+class AdaScopeDetector(SingleStageDetector):
     """Flattened SyncCleanGRPODetector for the current external-local path."""
 
     def __init__(

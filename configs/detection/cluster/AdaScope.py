@@ -33,7 +33,7 @@ INF = 1e8
 
 # ── Model ────────────────────────────────────────────────────────
 model = dict(
-    type='FixedFlatSyncGRPODetector',
+    type='AdaScopeDetector',
     auto_sync_external_from_global=True,
     use_refiner=True, use_local_head=False, share_local_with_global=True,
     train_global_head=True, train_local_head=False,
@@ -53,7 +53,7 @@ model = dict(
         init_cfg=dict(type='Pretrained', checkpoint='torchvision://resnet50')),
     neck=dict(type='FPN', in_channels=[256, 512, 1024, 2048], out_channels=256,
         start_level=1, num_outs=5, relu_before_extra_convs=True),
-    cluster_head=dict(type='C5ClusterHead', in_channels=2048, core_size=512,
+    cluster_head=dict(type='AdaScopeClusterHead', in_channels=2048, core_size=512,
         core_stride=1, feat_channels=256,
         loss_cls=dict(type='FocalLoss', use_sigmoid=True, gamma=2.0, alpha=0.75,
             loss_weight=50.0), threshold=0.3),
@@ -65,7 +65,7 @@ model = dict(
         loss_bbox=dict(type='IoULoss', loss_weight=1.0),
         loss_centerness=dict(type='CrossEntropyLoss', use_sigmoid=True,
             loss_weight=1.0)),
-    refiner=dict(type='FPNTemplateThreeActionGRPORefiner', in_channels=256,
+    refiner=dict(type='AdaScopeRefiner', in_channels=256,
         feat_channels=256, num_ins=5, fusion_level=2, fusion_type='concat',
         resize_mode='bilinear', state_roi_size=(7, 7), state_sampling_ratio=2,
         hidden_dim=256, min_box_size=2.0,
@@ -158,7 +158,7 @@ default_hooks = dict(
                     save_best='merged_voc/mAP', rule='greater'),
 )
 custom_hooks = [
-    dict(type='SynWarmupSupGRPOStageHook', warmup_epochs=12,
+    dict(type='AdaScopeGRPOStageHook', warmup_epochs=12,
          refiner_supervised_epochs=4, reference_metric_key='merged_voc/mAP'),
 ]
 

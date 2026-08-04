@@ -17,7 +17,7 @@ from mmengine.runner import Runner
 
 
 @HOOKS.register_module()
-class SynWarmupSupRLStageHook(Hook):
+class AdaScopeStageHook(Hook):
     """Three-stage schedule shared by AdaScope GRPO/PPO/SAC/TRPO variants."""
 
     def __init__(
@@ -70,7 +70,7 @@ class SynWarmupSupRLStageHook(Hook):
             model.use_refiner = stage != 'warmup'
 
         runner.logger.info(
-            f'[SynWarmupSupRLStageHook] mode={mode} '
+            f'[AdaScopeStageHook] mode={mode} '
             f'epoch={epoch} stage={stage}')
         return stage
 
@@ -114,7 +114,7 @@ class SynWarmupSupRLStageHook(Hook):
                 score=score, epoch=epoch)
             if updated:
                 runner.logger.info(
-                    f'[SynWarmupSupRLStageHook] cached warmup detector '
+                    f'[AdaScopeStageHook] cached warmup detector '
                     f'epoch={epoch} score={score:.4f}')
             return
 
@@ -125,7 +125,7 @@ class SynWarmupSupRLStageHook(Hook):
                 score=score, epoch=epoch)
             if updated:
                 runner.logger.info(
-                    f'[SynWarmupSupRLStageHook] cached supervised refiner '
+                    f'[AdaScopeStageHook] cached supervised refiner '
                     f'epoch={epoch} score={score:.4f}')
             return
 
@@ -142,12 +142,12 @@ class SynWarmupSupRLStageHook(Hook):
         updated = update_fn(score=score, epoch=epoch)
         if updated:
             runner.logger.info(
-                f'[SynWarmupSupRLStageHook] updated policy reference '
+                f'[AdaScopeStageHook] updated policy reference '
                 f'epoch={epoch} score={score:.4f}')
 
 
 @HOOKS.register_module()
-class SynWarmupSupGRPOStageHook(SynWarmupSupRLStageHook):
+class AdaScopeGRPOStageHook(AdaScopeStageHook):
     """Alias with the GRPO/PPO policy stage name."""
 
     def __init__(self, **kwargs):
@@ -155,7 +155,7 @@ class SynWarmupSupGRPOStageHook(SynWarmupSupRLStageHook):
 
 
 @HOOKS.register_module()
-class SynWarmupSupPolicyStageHook(SynWarmupSupRLStageHook):
+class AdaScopePolicyStageHook(AdaScopeStageHook):
     """Alias with the SAC/TRPO policy stage name."""
 
     def __init__(self, **kwargs):

@@ -13,8 +13,7 @@ from .transforms import (
     PrintPipeline,
     CopyPaste,
     SkyCopyPaste,
-    GenerateC5Targets,
-    GenerateC5TargetsFromClusterGT,
+    AdaScopeClusterTargets,
     GenerateC5TargetsFromClusterJSON,
     GenerateC5InstanceGridTargets,
 )
@@ -34,8 +33,7 @@ __all__ = [
     "SIRSTVOCDetClusterDataset",
     "CopyPaste",
     "SkyCopyPaste",
-    "GenerateC5Targets",
-    "GenerateC5TargetsFromClusterGT",
+    "AdaScopeClusterTargets",
     "GenerateC5TargetsFromClusterJSON",
     "GenerateC5InstanceGridTargets",
 ]

@@ -7,10 +7,10 @@ from mmdet.registry import TRANSFORMS
 
 
 @TRANSFORMS.register_module()
-class GenerateC5TargetsFromClusterGT(BaseTransform):
+class AdaScopeClusterTargets(BaseTransform):
     """Generate C5 targets from pre-annotated cluster XML boxes.
 
-    This transform keeps the same supervision outputs as GenerateC5Targets,
+    This transform keeps the same supervision outputs as AdaScopeClusterTargets,
     but uses cluster boxes parsed from sibling XML files:
     `{img_id}_with_clusters.xml`.
     """

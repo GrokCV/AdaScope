@@ -44,7 +44,7 @@ model = dict(
 
 # ── Hooks: TRPO uses the policy-style stage hook ────────────────
 custom_hooks = [
-    dict(type='SynWarmupSupPolicyStageHook', warmup_epochs=12,
+    dict(type='AdaScopePolicyStageHook', warmup_epochs=12,
          refiner_supervised_epochs=4, reference_metric_key='merged_voc/mAP'),
 ]
 

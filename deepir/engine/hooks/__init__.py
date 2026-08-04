@@ -1,10 +1,10 @@
 from .adascope_stage_hook import (
-    SynWarmupSupRLStageHook,
-    SynWarmupSupGRPOStageHook,
-    SynWarmupSupPolicyStageHook,
+    AdaScopeStageHook,
+    AdaScopeGRPOStageHook,
+    AdaScopePolicyStageHook,
 )
 __all__ = [
-    'SynWarmupSupRLStageHook',
-    'SynWarmupSupGRPOStageHook',
-    'SynWarmupSupPolicyStageHook',
+    'AdaScopeStageHook',
+    'AdaScopeGRPOStageHook',
+    'AdaScopePolicyStageHook',
 ]

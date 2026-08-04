@@ -10,7 +10,7 @@ from mmengine.structures import InstanceData
 
 from mmdet.registry import MODELS
 
-from .adascope_rl_refiner import PlainTemplateThreeActionRLRefiner
+from .adascope_rl_refiner import AdaScopeRLRefinerBase
 
 
 @MODELS.register_module()
@@ -40,7 +40,7 @@ class AdaScopeSACRefiner(nn.Module):
         init_alpha: float = 0.2,
     ) -> None:
         super().__init__()
-        self.impl = PlainTemplateThreeActionRLRefiner(
+        self.impl = AdaScopeRLRefinerBase(
             in_channels=in_channels,
             feat_channels=feat_channels,
             num_ins=num_ins,

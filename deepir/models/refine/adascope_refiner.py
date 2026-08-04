@@ -10,7 +10,7 @@ from mmdet.registry import MODELS
 
 
 @MODELS.register_module()
-class FPNTemplateThreeActionGRPORefiner(nn.Module):
+class AdaScopeRefiner(nn.Module):
     """Three-action discrete refiner for DenseSIRST cluster proposals.
 
     Direct inheritance from nn.Module (not through FPNTemplateGRPORefiner).

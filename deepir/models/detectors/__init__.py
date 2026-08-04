@@ -35,6 +35,7 @@ _safe_export(
     ['SynSingleStageRawClusterFPNRoIGRPODetector'],
 )
 
+_safe_export('adascope_detector', ['AdaScopeDetector'])
 _safe_export('adascope_rl_detector', ['AdaScopeRLDetector'])
 _safe_export('adascope_ppo_detector', ['AdaScopePPODetector'])
 _safe_export('adascope_sac_detector', ['AdaScopeSACDetector'])

@@ -25,7 +25,7 @@ train_pipeline = [
     dict(type='LoadAnnotations', with_bbox=True),
     dict(type='Resize', scale=(CORE_SCALE, CORE_SCALE), keep_ratio=False),
     dict(
-        type='GenerateC5TargetsFromClusterGT',
+        type='AdaScopeClusterTargets',
         stride=STRIDE,
         rf_scale_bins=RF_SCALE_BINS,
         cluster_xml_suffix='_with_clusters.xml',

@@ -19,7 +19,7 @@ train_pipeline = [
     dict(type='LoadAnnotations', with_bbox=True),
     dict(type='Resize', scale=(core_scale, core_scale), keep_ratio=False),
     dict(
-        type='GenerateC5Targets',
+        type='AdaScopeClusterTargets',
         stride=stride,
         cluster_gt=True,
         cluster_grid_size=cluster_grid_size,
@@ -43,7 +43,7 @@ val_pipeline = [
     dict(type='LoadAnnotations', with_bbox=True),
     dict(type='Resize', scale=(core_scale, core_scale), keep_ratio=False),
     dict(
-        type='GenerateC5Targets',
+        type='AdaScopeClusterTargets',
         stride=stride,
         cluster_gt=True,
         cluster_grid_size=cluster_grid_size,

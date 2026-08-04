@@ -7,7 +7,7 @@ from mmengine.structures import InstanceData
 
 from mmdet.registry import MODELS
 
-from .adascope_rl_refiner import PlainTemplateThreeActionRLRefiner
+from .adascope_rl_refiner import AdaScopeRLRefinerBase
 
 
 @MODELS.register_module()
@@ -32,7 +32,7 @@ class AdaScopeTRPORefiner(nn.Module):
         template_rf_expand_values: Sequence[float] = (1.0, 1.25, 1.5, 2.0, 2.5),
     ) -> None:
         super().__init__()
-        self.impl = PlainTemplateThreeActionRLRefiner(
+        self.impl = AdaScopeRLRefinerBase(
             in_channels=in_channels,
             feat_channels=feat_channels,
             num_ins=num_ins,

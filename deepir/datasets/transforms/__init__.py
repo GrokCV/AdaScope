@@ -2,12 +2,11 @@ from .debug import PrintPipeline
 from .formatting import PackDualSegInputs
 from .loading import LoadDualSegAnnotations, LoadSegAnnotations
 from .processing import DualSegResize, RandomDualSegFlip
-from .adascope_cluster_targets import GenerateC5TargetsFromClusterGT
+from .adascope_cluster_targets import AdaScopeClusterTargets
 from .cluster_json_targets import GenerateC5TargetsFromClusterJSON
 from .instance_grid_targets import GenerateC5InstanceGridTargets
 from .instance_grid_cluster_gt_targets import GenerateC5InstanceGridTargetsFromClusterGT
 from .transforms import CopyPaste, SkyCopyPaste
-from .my_c5_transforms import GenerateC5Targets
 __all__ = [
     "PackDualSegInputs",
     "PrintPipeline",
@@ -17,8 +16,7 @@ __all__ = [
     "RandomDualSegFlip",
     "CopyPaste",
     "SkyCopyPaste",
-    "GenerateC5Targets",
-    "GenerateC5TargetsFromClusterGT",
+    "AdaScopeClusterTargets",
     "GenerateC5TargetsFromClusterJSON",
     "GenerateC5InstanceGridTargets",
     "GenerateC5InstanceGridTargetsFromClusterGT",

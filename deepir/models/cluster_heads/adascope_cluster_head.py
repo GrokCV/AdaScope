@@ -8,7 +8,7 @@ from mmdet.registry import MODELS
 
 
 @MODELS.register_module()
-class C5ClusterHead(BaseDenseHead):
+class AdaScopeClusterHead(BaseDenseHead):
     """C5 binary grid classifier head with grid-to-bbox decoding helpers."""
 
     def __init__(self,

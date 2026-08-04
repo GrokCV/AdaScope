@@ -10,7 +10,7 @@ from mmdet.registry import MODELS
 
 
 @MODELS.register_module()
-class PlainTemplateThreeActionRLRefiner(nn.Module):
+class AdaScopeRLRefinerBase(nn.Module):
     """Plain three-action refiner for PPO/SAC/DQN.
 
     This module intentionally inherits only ``nn.Module`` and does not reuse
@@ -697,7 +697,7 @@ class PlainTemplateThreeActionRLRefiner(nn.Module):
 
 
 @MODELS.register_module()
-class PlainTemplateThreeActionPPORefiner(PlainTemplateThreeActionRLRefiner):
+class AdaScopePPORefinerBase(AdaScopeRLRefinerBase):
 
     def __init__(self, *args, **kwargs) -> None:
         kwargs.pop('algorithm', None)
@@ -705,7 +705,7 @@ class PlainTemplateThreeActionPPORefiner(PlainTemplateThreeActionRLRefiner):
 
 
 @MODELS.register_module()
-class PlainTemplateThreeActionSACRefiner(PlainTemplateThreeActionRLRefiner):
+class AdaScopeSACRefinerBase(AdaScopeRLRefinerBase):
 
     def __init__(self, *args, **kwargs) -> None:
         kwargs.pop('algorithm', None)
@@ -713,7 +713,7 @@ class PlainTemplateThreeActionSACRefiner(PlainTemplateThreeActionRLRefiner):
 
 
 @MODELS.register_module()
-class PlainTemplateThreeActionDQNRefiner(PlainTemplateThreeActionRLRefiner):
+class AdaScopeDQNRefinerBase(AdaScopeRLRefinerBase):
 
     def __init__(self, *args, **kwargs) -> None:
         kwargs.pop('algorithm', None)

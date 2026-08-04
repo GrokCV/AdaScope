@@ -11,7 +11,7 @@ from mmdet.registry import MODELS
 
 @MODELS.register_module()
 class AdaScopePPORefiner(nn.Module):
-    """PlainTemplateThreeActionPPORefiner: Three-action refiner for PPO.
+    """AdaScopePPORefinerBase: Three-action refiner for PPO.
 
     This module intentionally inherits only ``nn.Module`` and does not reuse
     GRPO detector/refiner code paths.
