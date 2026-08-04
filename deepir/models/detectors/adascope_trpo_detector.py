@@ -25,11 +25,30 @@ class AdaScopeTRPODetector(AdaScopeRLDetector):
     ``evaluate_state_values`` (the base three-action template refiner API).
     """
 
-    def __init__(self, *args, rl_algorithm: str = 'trpo',
-                 policy_stage_name: str = 'policy', **kwargs):
+    def __init__(
+        self,
+        *args,
+        rl_algorithm: str = 'trpo',
+        policy_stage_name: str = 'policy',
+        trpo_max_kl: float = 0.01,
+        trpo_cg_damping: float = 0.01,
+        trpo_cg_iters: int = 10,
+        trpo_backtrack_iters: int = 10,
+        trpo_backtrack_ratio: float = 0.5,
+        trpo_accept_ratio: float = 0.1,
+        trpo_value_loss_weight: float = 0.5,
+        **kwargs,
+    ):
         super().__init__(
             *args, rl_algorithm=rl_algorithm,
             policy_stage_name=policy_stage_name, **kwargs)
+        self.trpo_max_kl = float(trpo_max_kl)
+        self.trpo_cg_damping = float(trpo_cg_damping)
+        self.trpo_cg_iters = int(trpo_cg_iters)
+        self.trpo_backtrack_iters = int(trpo_backtrack_iters)
+        self.trpo_backtrack_ratio = float(trpo_backtrack_ratio)
+        self.trpo_accept_ratio = float(trpo_accept_ratio)
+        self.trpo_value_loss_weight = float(trpo_value_loss_weight)
 
     # ── TRPO-specific rollout ────────────────────────────────────
     def _collect_plain_rollout(self, batch_inputs: Tensor, batch_data_samples):

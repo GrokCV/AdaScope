@@ -387,8 +387,17 @@ class AdaScopeSACRefiner(nn.Module):
         min_q = torch.minimum(self.q1_head(embed), self.q2_head(embed))
         alpha = self.sac_alpha()
         entropy = -(probs * log_probs).sum(dim=-1)
-        loss_actor = (probs * (alpha.detach() * log_probs - min_q)).sum(dim=-1).mean()
+        # Sampled-action actor loss (policy-gradient estimator). The original
+        # expectation form \sum_a p(a)(alpha*log p(a) - q(a)) has exactly zero
+        # gradient when the policy is (near-)uniform and Q is zero-initialised
+        # (score-function identity), which froze the policy at maximum entropy
+        # and drove log_alpha to +inf (entropy stays above target). Sampling
+        # the chosen action keeps a healthy gradient in that regime.
+        log_probs_chosen = log_probs.gather(1, action_indices)
+        q_chosen = min_q.gather(1, action_indices)
+        loss_actor = -(alpha.detach() * log_probs_chosen - q_chosen).mean()
         loss_alpha = -(self.log_alpha * (entropy.detach() - self.target_entropy)).mean()
+        self.log_alpha.data.clamp_(min=-10.0, max=10.0)
         return dict(
             sac_loss_actor=float(actor_loss_weight) * loss_actor,
             sac_loss_critic=float(critic_loss_weight) * loss_critic,

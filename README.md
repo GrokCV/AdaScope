@@ -210,6 +210,35 @@ CUDA_VISIBLE_DEVICES=0 python tools/test_det.py \
   work_dirs/adascope_ppo_densesirst/best_merged_voc_mAP_epoch_XX.pth
 ```
 
+### Troubleshooting: Empty Cluster GT Data
+
+If the cluster GT XML files are not found at training time, the refiner receives
+no valid proposals and all policy / refiner losses become **zero**. The symptom
+is easy to spot:
+
+- `refiner_sup_num_valid` stays at **0** (or very low) in the training log
+- GPU memory usage is **~650 MiB** instead of the normal **~1450 MiB**
+- `merged_voc/mAP` plateaus at **~0.27** and never improves beyond the warmup
+  stage, because the refiner and GRPO stages have no signal
+
+The base config ``configs/detection/_base_/datasets/adascope_densesirst.py``
+ships with a **placeholder absolute path** that does not exist on your machine:
+
+```python
+DATA_ROOT = '/path/to/your/DenseSIRST/SIRSTdevkit'
+```
+
+This is intentional — training will fail immediately with a ``FileNotFoundError``
+instead of silently loading empty cluster GT data.  Edit ``DATA_ROOT`` to point
+to your local DenseSIRST directory.
+
+**Diagnose**
+
+```shell
+# Check whether cluster GT is loaded (memory should be ~1450 MiB)
+grep "memory:" work_dirs/adascope_fcos_densesirst/train.log | head -5
+```
+
 [Back to top](#top)
 
 ---
