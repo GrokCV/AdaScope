@@ -218,8 +218,6 @@ is easy to spot:
 
 - `refiner_sup_num_valid` stays at **0** (or very low) in the training log
 - GPU memory usage is **~650 MiB** instead of the normal **~1450 MiB**
-- `merged_voc/mAP` plateaus at **~0.27** and never improves beyond the warmup
-  stage, because the refiner and GRPO stages have no signal
 
 The base config ``configs/detection/_base_/datasets/adascope_densesirst.py``
 ships with a **placeholder absolute path** that does not exist on your machine:
