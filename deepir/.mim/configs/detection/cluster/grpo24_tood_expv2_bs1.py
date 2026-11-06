@@ -16,7 +16,7 @@ custom_imports = dict(
     allow_failed_imports=False,
 )
 
-REPO_ROOT = '/root/data-tmp/AsyncDetv2'
+REPO_ROOT = '/root/data-tmp/AdaScope'
 data_root = '/root/data-tmp/data/DenseSIRST/SIRSTdevkit'
 dataset_type = 'deepir.SIRSTVOCDetSegDataset'
 backend_args = None

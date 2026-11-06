@@ -17,7 +17,7 @@ custom_imports = dict(
     allow_failed_imports=False,
 )
 
-REPO_ROOT = '/data-tmp/AsyncDetv2'
+REPO_ROOT = '/data-tmp/AdaScope'
 DATA_ROOT = '/root/data-tmp/data/DenseSIRST/SIRSTdevkit'
 CLUSTER_DIR = osp.join(DATA_ROOT, 'SIRST', 'Cluster_relabel_graph_v2')
 WORK_DIR = osp.join(

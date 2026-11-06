@@ -187,20 +187,25 @@ coarse-to-fine pipeline (GEDM + ARFR + local FCOS) through the common base
 detector `AdaScopeRLDetector` — only the detector/refiner classes and the
 policy-stage name differ:
 
-| Config | Policy optimizer | 
+| Config | Policy optimizer |
 |--------|------------------|
-| `AdaScope.py` | GRPO (default) | 
-| `AdaScope_ppo.py` | PPO | 
-| `AdaScope_sac.py` | SAC | 
-| `AdaScope_trpo.py` | TRPO | 
+| `AdaScope.py` | GRPO |
+| `AdaScope_ppo.py` | PPO |
+| `AdaScope_sac.py` | SAC |
+| `AdaScope_trpo.py` | TRPO |
 
 Train any variant with the same entry point:
 
 ```shell
+CUDA_VISIBLE_DEVICES=0 python tools/train_det.py configs/detection/cluster/AdaScope_TOOD.py
 CUDA_VISIBLE_DEVICES=0 python tools/train_det.py configs/detection/cluster/AdaScope_ppo.py
 CUDA_VISIBLE_DEVICES=0 python tools/train_det.py configs/detection/cluster/AdaScope_sac.py
 CUDA_VISIBLE_DEVICES=0 python tools/train_det.py configs/detection/cluster/AdaScope_trpo.py
 ```
+
+`AdaScope_TOOD.py` uses the same AdaScope detector/refiner and cluster head as
+`AdaScope.py`, replacing the global FCOS head with a TOOD head. Its default
+schedule is 20 epochs, matching the TOOD experiments reported in the paper.
 
 Test with the corresponding config and checkpoint:
 
@@ -270,7 +275,7 @@ the VOC 11-point protocol at IoU=0.5; PR / F1 / F2 at a confidence threshold):
 
 | Method | Backbone | FLOPs ↓ | Params ↓ | mAP50 ↑ | Recall50 ↑ | PR ↑ | F1 ↑ | F2 ↑ |
 |--------|----------|---------|----------|---------|------------|------|------|------|
-| **One-stage** |
+| **One-stage** |||||||||
 | FCOS | ResNet50 | 50.291G | 32.113M | 0.257 | 0.315 | 0.1571 | 0.2023 | 0.2445 |
 | VFNet | ResNet50 | 48.317G | 32.709M | 0.253 | 0.336 | 0.1820 | 0.2251 | 0.2624 |
 | YOLOX | — | 8.578G | 8.968M | 0.210 | 0.341 | 0.1450 | 0.1882 | 0.2291 |
@@ -278,23 +283,54 @@ the VOC 11-point protocol at IoU=0.5; PR / F1 / F2 at a confidence threshold):
 | DyHead | ResNet50 | 27.866G | 38.890M | 0.249 | 0.335 | 0.1650 | 0.2090 | 0.2488 |
 | DDOD | ResNet50 | 46.514G | 32.378M | 0.253 | 0.335 | 0.1620 | 0.2079 | 0.2504 |
 | GFL | ResNet50 | 52.296G | 32.258M | 0.264 | 0.367 | 0.1850 | 0.2331 | 0.2762 |
-| **Two-stage** |
+| **Two-stage** |||||||||
 | Cascade R-CNN | ResNet50 | 90.978G | 69.152M | 0.136 | 0.188 | 0.1150 | 0.1338 | 0.1484 |
 | SABL | ResNet50 | 0.125T | 42.213M | 0.124 | 0.104 | 0.1050 | 0.0969 | 0.0926 |
 | Dynamic R-CNN | ResNet50 | 63.179G | 41.348M | 0.184 | 0.235 | 0.1420 | 0.1678 | 0.1883 |
-| **End2End**|
+| **End2End**|||||||||
 | Sparse R-CNN | ResNet50 | 45.274G | 0.106G | 0.183 | 0.572 | 0.0850 | 0.1444 | 0.2488 |
 | DAB-DETR | ResNet50 | 28.939G | 43.702M | 0.005 | 0.054 | 0.0100 | 0.0160 | 0.0250 |
 | DQ-DETR | — | 783.57G | 58.68M | 0.0149 | 0.154 | 0.0200 | 0.0345 | 0.0610 |
 | EFLNet | — | 65.49G | 38.335M | 0.152 | 0.1349 | 0.1400 | 0.1263 | 0.1193 |
 | PConv | — | 65.32G | 37.136M | 0.164 | 0.179 | 0.1500 | 0.1525 | 0.1540 |
-| **Coarse2Fine**|
+| **Coarse2Fine**|||||||||
 | DMNet | ResNet50 | 144.45G | 63.18M | 0.2239 | 0.1259 | 0.2400 | 0.1412 | 0.1132 |
 | AdaZoom | ResNet50 | 49.96G | 31.887M | 0.052 | 0.348 | 0.0360 | 0.0554 | 0.0819 |
 | YOLC | HRNet | 121.59G | 67.55M | 0.335 | 0.477 | 0.3416 | 0.3527 | 0.3597 |
-| BAFE-Net | ResNet50 | 71.639G | 35.626M | 0.283 | 0.335 | **0.4275** | 0.3302 | 0.2905 |
+| BAFE-Net | ResNet50 | 71.639G | 35.626M | 0.283 | 0.335 | 0.4275 | 0.3302 | 0.2905 |
 | YOLD | HRNet | 122.62G | 67.61M | 0.171 | 0.371 | 0.3312 | 0.2172 | 0.1800 |
-| **AdaScope (Ours)** | **ResNet50** | 89.34G | 49.73M | **0.402** | **0.681** | 0.3284 | **0.3683** | **0.3972** |
+| SSCFNet | — | 76.29G | 19.24M | 0.3086 | 0.4351 | 0.9420 | 0.5704 | 0.4613 |
+| HFMNet | — | 11.19G | 7.38M | 0.4117 | 0.5096 | 0.7629 | 0.6003 | 0.5322 |
+| **AdaScope (Ours)** | **ResNet50** | 44.95G | 30.05M | **0.602** | **0.732** | **0.6538** | **0.6291** | **0.6157** |
+
+> SSCFNet and HFMNet entries are **mask-to-box evaluations** of the corresponding
+> segmentation networks, not separately trained detection heads, so their backbone
+> is not reported (—).
+
+### Cross-Dataset Generalization
+
+Cross-dataset benchmark with **20 training epochs on each target dataset**, i.e.
+each model (including AdaScope) is retrained on the target domain — these are
+*not* the DenseSIRST zero-shot numbers. SIRST and IRSTD-1K each have five columns.
+Params, FLOPs and FPS are measured at 512×512 on a V100 with batch size one; `—`
+means not measured under the same protocol.
+
+| Method | SIRST mAP50 | SIRST Recall | SIRST Params(M) | SIRST FLOPs(G) | SIRST FPS | IRSTD-1K mAP50 | IRSTD-1K Recall | IRSTD-1K Params(M) | IRSTD-1K FLOPs(G) | IRSTD-1K FPS |
+|--------|-------------|--------------|-----------------|----------------|-----------|----------------|-----------------|--------------------|-------------------|--------------|
+| AdaScope | 82.93 | 81.65 | 30.05 | 44.95 | 31.87 | 59.04 | 63.64 | 30.05 | 44.95 | 31.87 |
+| DNANet | 78.00 | 86.24 | 4.70 | 57.04 | 8.35 | 57.35 | 74.75 | 4.70 | 57.04 | 8.35 |
+| ResUNet | 67.12 | 87.16 | 0.90 | 15.32 | 167.94 | 55.66 | 76.77 | 0.90 | 15.32 | 167.94 |
+| ISNet | 0.00 | 0.00 | 1.09 | 122.47 | 35.28 | 0.67 | 8.75 | 1.09 | 122.47 | 35.28 |
+| UIU-Net | 70.14 | 87.16 | 50.54 | 217.70 | 27.59 | 58.40 | 75.08 | 50.54 | 217.70 | 27.59 |
+| ACM | 0.00 | 0.00 | 0.40 | 1.61 | 170.97 | 0.00 | 0.00 | 0.40 | 1.61 | 170.97 |
+| ALCNet | 9.84 | 4.59 | 0.52 | 1.51 | 188.51 | 0.68 | 8.75 | 0.52 | 1.51 | 188.51 |
+| SSCFNet | 23.96 | 80.73 | 19.24 | 76.29 | 13.33 | 25.35 | 85.86 | 19.24 | 76.29 | 13.33 |
+| HFMNet | 39.40 | 79.91 | 7.38 | 11.19 | 33.25 | 49.33 | 86.87 | 7.38 | 11.19 | 33.25 |
+
+> `(det head)` variants replace the segmentation head with a simple FCOS-like
+> detection head and are trained for 20 epochs on each target dataset; their speed
+> fields are not measured under the same protocol. ISNet, ACM and ALCNet are
+> clearly under-trained at the 20-epoch budget.
 
 [Back to top](#top)
 
