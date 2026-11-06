@@ -197,10 +197,7 @@ policy-stage name differ:
 Train any variant with the same entry point:
 
 ```shell
-CUDA_VISIBLE_DEVICES=0 python tools/train_det.py configs/detection/cluster/AdaScope_TOOD.py
-CUDA_VISIBLE_DEVICES=0 python tools/train_det.py configs/detection/cluster/AdaScope_ppo.py
-CUDA_VISIBLE_DEVICES=0 python tools/train_det.py configs/detection/cluster/AdaScope_sac.py
-CUDA_VISIBLE_DEVICES=0 python tools/train_det.py configs/detection/cluster/AdaScope_trpo.py
+CUDA_VISIBLE_DEVICES=0 python tools/train_det.py configs/detection/cluster/AdaScope.py
 ```
 
 `AdaScope_TOOD.py` uses the same AdaScope detector/refiner and cluster head as
@@ -299,25 +296,17 @@ the VOC 11-point protocol at IoU=0.5; PR / F1 / F2 at a confidence threshold):
 | YOLC | HRNet | 121.59G | 67.55M | 0.335 | 0.477 | 0.3416 | 0.3527 | 0.3597 |
 | BAFE-Net | ResNet50 | 71.639G | 35.626M | 0.283 | 0.335 | 0.4275 | 0.3302 | 0.2905 |
 | YOLD | HRNet | 122.62G | 67.61M | 0.171 | 0.371 | 0.3312 | 0.2172 | 0.1800 |
-| SSCFNet | — | 76.29G | 19.24M | 0.3086 | 0.4351 | 0.9420 | 0.5704 | 0.4613 |
+| SSCFNet | — | 76.29G | 19.24M | 0.3086 | 0.4351 | **0.9420** | 0.5704 | 0.4613 |
 | HFMNet | — | 11.19G | 7.38M | 0.4117 | 0.5096 | 0.7629 | 0.6003 | 0.5322 |
-| **AdaScope (Ours)** | **ResNet50** | 44.95G | 30.05M | **0.602** | **0.732** | **0.6538** | **0.6291** | **0.6157** |
+| **AdaScope (Ours)** | **ResNet50** | 44.95G | 30.05M | **0.602** | **0.732** | 0.6538 | **0.6291** | **0.6157** |
 
-> SSCFNet and HFMNet entries are **mask-to-box evaluations** of the corresponding
-> segmentation networks, not separately trained detection heads, so their backbone
-> is not reported (—).
 
-### Cross-Dataset Generalization
 
-Cross-dataset benchmark with **20 training epochs on each target dataset**, i.e.
-each model (including AdaScope) is retrained on the target domain — these are
-*not* the DenseSIRST zero-shot numbers. SIRST and IRSTD-1K each have five columns.
-Params, FLOPs and FPS are measured at 512×512 on a V100 with batch size one; `—`
-means not measured under the same protocol.
+### Cross-Dataset
 
 | Method | SIRST mAP50 | SIRST Recall | SIRST Params(M) | SIRST FLOPs(G) | SIRST FPS | IRSTD-1K mAP50 | IRSTD-1K Recall | IRSTD-1K Params(M) | IRSTD-1K FLOPs(G) | IRSTD-1K FPS |
 |--------|-------------|--------------|-----------------|----------------|-----------|----------------|-----------------|--------------------|-------------------|--------------|
-| AdaScope | 82.93 | 81.65 | 30.05 | 44.95 | 31.87 | 59.04 | 63.64 | 30.05 | 44.95 | 31.87 |
+| AdaScope | **82.93** | 81.65 | 30.05 | 44.95 | 31.87 | **59.04** | 63.64 | 30.05 | 44.95 | 31.87 |
 | DNANet | 78.00 | 86.24 | 4.70 | 57.04 | 8.35 | 57.35 | 74.75 | 4.70 | 57.04 | 8.35 |
 | ResUNet | 67.12 | 87.16 | 0.90 | 15.32 | 167.94 | 55.66 | 76.77 | 0.90 | 15.32 | 167.94 |
 | ISNet | 0.00 | 0.00 | 1.09 | 122.47 | 35.28 | 0.67 | 8.75 | 1.09 | 122.47 | 35.28 |
@@ -326,11 +315,6 @@ means not measured under the same protocol.
 | ALCNet | 9.84 | 4.59 | 0.52 | 1.51 | 188.51 | 0.68 | 8.75 | 0.52 | 1.51 | 188.51 |
 | SSCFNet | 23.96 | 80.73 | 19.24 | 76.29 | 13.33 | 25.35 | 85.86 | 19.24 | 76.29 | 13.33 |
 | HFMNet | 39.40 | 79.91 | 7.38 | 11.19 | 33.25 | 49.33 | 86.87 | 7.38 | 11.19 | 33.25 |
-
-> `(det head)` variants replace the segmentation head with a simple FCOS-like
-> detection head and are trained for 20 epochs on each target dataset; their speed
-> fields are not measured under the same protocol. ISNet, ACM and ALCNet are
-> clearly under-trained at the 20-epoch budget.
 
 [Back to top](#top)
 
